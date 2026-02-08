@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Tareas</title>
+</head>
+<body>
+    <h2>Lista de Tareas</h2>
+    <ul id="listaTareas"></ul>
+
+    <script>
+        async function cargarTareas() {
+            const token = localStorage.getItem('token'); // obtener token
+            if (!token) {
+                alert('Debes iniciar sesión primero');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:3000/tareas', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!res.ok) {
+                    alert('No tienes acceso. Inicia sesión nuevamente.');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const tareas = await res.json();
+                const ul = document.getElementById('listaTareas');
+                ul.innerHTML = '';
+                tareas.forEach(t => {
+                    const li = document.createElement('li');
+                    li.textContent = `${t.titulo} - ${t.descripcion} (${t.estado})`;
+                    ul.appendChild(li);
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert('Error al cargar las tareas');
+            }
+        }
+
+        cargarTareas();
+    </script>
+</body>
+</html>
