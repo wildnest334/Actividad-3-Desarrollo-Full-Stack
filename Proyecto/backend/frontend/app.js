@@ -14,41 +14,40 @@ const fechaCreacionInput = document.getElementById('fechaCreacion');
 const cancelBtn = document.getElementById('cancel-btn');
 const list = document.getElementById('downloads-list');
 
-// Agregamos botón de logout dinámicamente
-const logoutBtn = document.createElement('button');
-logoutBtn.textContent = 'Cerrar sesión';
-logoutBtn.className = 'btn-logout';
-logoutBtn.style.marginBottom = '10px';
-document.body.insertBefore(logoutBtn, document.body.firstChild);
-logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('token');
-    window.location.href = '/index.html';
-});
-
-// ===============================
-// STORAGE
-// ===============================
-function guardarEnStorage() {
-    localStorage.setItem('tareas', JSON.stringify(tareas));
-    guardarEnJSON(); // <-- ahora también se guarda en JSON
-}
-
-function cargarDesdeStorage() {
-    tareas = JSON.parse(localStorage.getItem('tareas')) || [];
-}
-
 // ===============================
 // INIT
 // ===============================
 function init() {
-    cargarDesdeStorage();
+    cargarDesdeJSON(); // cargamos desde el backend
     render();
     form.addEventListener('submit', guardarTarea);
     cancelBtn.addEventListener('click', cancelarEdicion);
 }
 
 // ===============================
-// GUARDAR
+// CARGAR DESDE JSON (backend)
+// ===============================
+async function cargarDesdeJSON() {
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch('/api/tareas', {
+            headers: { 'Authorization': `Bearer ${token || ''}` }
+        });
+        if (res.status === 401) {
+            alert('Tu sesión expiró o no tienes permisos, serás redirigido al login');
+            localStorage.removeItem('token');
+            window.location.href = '/index.html';
+            return;
+        }
+        tareas = await res.json();
+        render();
+    } catch (error) {
+        console.error('Error al cargar tareas:', error);
+    }
+}
+
+// ===============================
+// GUARDAR TAREA
 // ===============================
 function guardarTarea(e) {
     e.preventDefault();
@@ -62,45 +61,46 @@ function guardarTarea(e) {
     };
 
     tareas.push(nuevaTarea);
-
-    guardarEnStorage();
-    form.reset();
     render();
+    form.reset();
+    guardarEnJSON(nuevaTarea); // solo enviamos la tarea nueva
 }
 
 // ===============================
 // GUARDAR EN JSON (backend)
 // ===============================
-async function guardarEnJSON() {
-    const token = localStorage.getItem('token'); // si usas auth
+async function guardarEnJSON(tarea) {
+    const token = localStorage.getItem('token');
 
     try {
-        // sincronizamos TODO el arreglo de tareas
-        for (const t of tareas) {
-            const res = await fetch('/api/tareas', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token || ''}`
-                },
-                body: JSON.stringify(t)
-            });
+        const res = await fetch('/api/tareas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token || ''}`
+            },
+            body: JSON.stringify(tarea)
+        });
 
-            // Redirigir al login si no autorizado
-            if (res.status === 401) {
-                alert('Tu sesión expiró o no tienes permisos, serás redirigido al login');
-                localStorage.removeItem('token');
-                window.location.href = '/index.html';
-                return;
-            }
+        if (res.status === 401) {
+            alert('Tu sesión expiró o no tienes permisos, serás redirigido al login');
+            localStorage.removeItem('token');
+            window.location.href = '/index.html';
+            return;
         }
+
+        const nueva = await res.json();
+        // reemplazamos el ID temporal con el real del backend (por si se necesita)
+        const index = tareas.findIndex(t => t.id === tarea.id);
+        if (index !== -1) tareas[index] = nueva;
+
     } catch (error) {
         console.error('Error al guardar en JSON:', error);
     }
 }
 
 // ===============================
-// ACTUALIZAR TAREA EN JSON
+// ACTUALIZAR EN JSON
 // ===============================
 async function actualizarEnJSON(tarea) {
     const token = localStorage.getItem('token');
@@ -125,16 +125,14 @@ async function actualizarEnJSON(tarea) {
 }
 
 // ===============================
-// ELIMINAR TAREA EN JSON
+// ELIMINAR EN JSON
 // ===============================
 async function eliminarEnJSON(id) {
     const token = localStorage.getItem('token');
     try {
         const res = await fetch(`/api/tareas/${id}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token || ''}`
-            }
+            headers: { 'Authorization': `Bearer ${token || ''}` }
         });
 
         if (res.status === 401) {
@@ -195,7 +193,7 @@ function render() {
 function redirigir(id, accion) {
     localStorage.setItem('tareaSeleccionada', id);
     localStorage.setItem('accionPendiente', accion);
-    window.location.href = '/index.html'; // Redirige al login si intenta modificar
+    window.location.href = '/index.html'; 
 }
 
 // ===============================
@@ -210,7 +208,7 @@ function completar(id) {
     const t = tareas.find(t => t.id === id);
     if (!t) return;
     t.estado = 'completada';
-    guardarEnStorage();
+    render();
     actualizarEnJSON(t);
 }
 
@@ -218,7 +216,7 @@ function eliminar(id) {
     const index = tareas.findIndex(t => t.id === id);
     if (index === -1) return;
     tareas.splice(index, 1);
-    guardarEnStorage();
+    render();
     eliminarEnJSON(id);
 }
 
@@ -228,9 +226,20 @@ function editar(id) {
     const nuevoNombre = prompt('Nuevo nombre de la tarea', t.nombre);
     if (nuevoNombre) {
         t.nombre = nuevoNombre;
-        guardarEnStorage();
+        render();
         actualizarEnJSON(t);
     }
+}
+
+// ===============================
+// LOGOUT AUTOMÁTICO
+// ===============================
+const logoutBtn = document.getElementById('logout');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = '/index.html';
+    });
 }
 
 // ===============================

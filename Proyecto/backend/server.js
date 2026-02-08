@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -64,10 +63,7 @@ app.post('/register', async (req, res) => {
     usuarios.push({ username, password: hash });
     await escribir(USERS_FILE, usuarios);
 
-    // Crear token para la sesión
     const token = jwt.sign({ username, rol: 'normal' }, SECRET_KEY, { expiresIn: '1h' });
-
-    // Responder con la ruta a la que debe redirigir el frontend
     res.json({ token, redirect: '/administrador.html' });
 });
 
@@ -75,7 +71,6 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
-    // Revisamos si es usuario especial
     const especial = usuariosEspeciales.find(u => u.username === username);
     if (especial) {
         const valid = await bcrypt.compare(password, await bcrypt.hash(especial.password, 10));
@@ -85,7 +80,6 @@ app.post('/login', async (req, res) => {
         return res.json({ token, redirect: '/tareas.html' });
     }
 
-    // Usuarios normales registrados
     const usuarios = await leer(USERS_FILE);
     const user = usuarios.find(u => u.username === username);
     if (!user) return res.status(400).json({ error: 'Usuario no registrado' });
@@ -99,7 +93,8 @@ app.post('/login', async (req, res) => {
 
 // ================= API TAREAS =================
 app.get('/api/tareas', auth, async (_, res) => {
-    res.json(await leer(DATA_FILE));
+    const tareas = await leer(DATA_FILE);
+    res.json(tareas);
 });
 
 app.post('/api/tareas', auth, async (req, res) => {
@@ -117,7 +112,8 @@ app.post('/api/tareas', auth, async (req, res) => {
 });
 
 app.put('/api/tareas/:id', auth, async (req, res) => {
-    if (req.user.rol !== 'especial') return res.status(403).json({ error: 'No tienes permisos' });
+    if (req.user.rol !== 'especial') 
+        return res.status(403).json({ error: 'No tienes permisos' });
 
     const tareas = await leer(DATA_FILE);
     const t = tareas.find(t => t.id === req.params.id);
@@ -129,32 +125,8 @@ app.put('/api/tareas/:id', auth, async (req, res) => {
 });
 
 app.delete('/api/tareas/:id', auth, async (req, res) => {
-    if (req.user.rol !== 'especial') return res.status(403).json({ error: 'No tienes permisos' });
-
-    let tareas = await leer(DATA_FILE);
-    tareas = tareas.filter(t => t.id !== req.params.id);
-    await escribir(DATA_FILE, tareas);
-    res.json({ ok: true });
-});
-
-// Editar tarea (solo usuarios especiales)
-app.put('/api/tareas/:id', auth, async (req, res) => {
     if (req.user.rol !== 'especial') 
-        return res.status(401).json({ error: 'No tienes permisos, redirigiendo al login' });
-
-    const tareas = await leer(DATA_FILE);
-    const t = tareas.find(t => t.id === req.params.id);
-    if (!t) return res.status(404).json({ error: 'Tarea no encontrada' });
-
-    Object.assign(t, req.body);
-    await escribir(DATA_FILE, tareas);
-    res.json(t);
-});
-
-// Eliminar tarea (solo usuarios especiales)
-app.delete('/api/tareas/:id', auth, async (req, res) => {
-    if (req.user.rol !== 'especial') 
-        return res.status(401).json({ error: 'No tienes permisos, redirigiendo al login' });
+        return res.status(403).json({ error: 'No tienes permisos' });
 
     let tareas = await leer(DATA_FILE);
     tareas = tareas.filter(t => t.id !== req.params.id);
