@@ -118,5 +118,9 @@
   {
     "username": "liz",
     "password": "$2b$10$RGnIlEobl69pcGC3jU/Bp.b8xzgcd2rZWwK0gJf8sgYmsL/YyvPIG"
+  },
+  {
+    "username": "jose",
+    "password": "$2b$10$nI5wXIsp4nEndPl7cnT29eLp50sfcw7nq2PuN3tKry2A0jYDctOo6"
   }
 ]
