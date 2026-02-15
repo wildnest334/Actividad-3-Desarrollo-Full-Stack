@@ -5,5 +5,12 @@
     "asignadoA": "12313213",
     "fechaCreacion": "2026-02-08",
     "estado": "completada"
+  },
+  {
+    "id": "1771133911824",
+    "nombre": "Ubuntu-22.04-desktop.iso",
+    "asignadoA": "12313213",
+    "fechaCreacion": "2026-02-14",
+    "estado": "pendiente"
   }
 ]
