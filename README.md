@@ -1,100 +1,47 @@
-# Proyecto: API de Gestión de Tareas
+Proyecto: API de Gestión de Productos
 
-Este proyecto es una **API REST** desarrollada con **Node.js** y **Express**, que permite gestionar tareas con operaciones CRUD (Crear, Leer, Actualizar, Eliminar). Además, cuenta con **autenticación JWT**, manejo seguro de usuarios con **bcryptjs**, y protección de rutas según el tipo de usuario. Nota importante, y escrito de forma simple, para entrar e iniciar el servidor es necesario acceder a la carpeta de Proyecto en la terminal usando "cd Proyecto" y luego entrando a la carpeta de backend usando "cd backend" y una vez dentro ya se puede iniciar el servidor usando node server.js
+Este proyecto es una API REST desarrollada con Node.js y Express, que permite gestionar productos mediante operaciones CRUD (Crear, Leer, Actualizar y Eliminar).
 
----
+Además, incluye:
 
-## **Estructura del proyecto**
+🔐 Autenticación con JWT
 
-Proyecto/
-├─ backend/
-│ ├─ server.js # Archivo principal del servidor
-│ ├─ tareas.json # Archivo que almacena las tareas
-│ └─ usuarios.json # Archivo que almacena los usuarios
-├─ frontend/
-│ ├─ index.html # Pantalla principal y login
-│ ├─ tareas.html # Pantalla de gestión de tareas (CRUD)
-│ └─ styles.css # Estilos del frontend
-└─ README.md
+🔒 Encriptación de contraseñas con bcryptjs
 
+🗄️ Base de datos MongoDB (Atlas)
 
-Copiar código
+🧪 Pruebas automatizadas con Jest
 
----
+🚀 Despliegue en Vercel
 
-## **Requisitos**
+🔁 Pipeline CI/CD con GitHub Actions
 
-- Node.js instalado
-- Navegador web
-- Opcional: Postman para probar la API
+Nota importante (cómo iniciar el servidor)
 
----
+Para iniciar el servidor de manera local es necesario:
 
-## **Instalación y ejecución**
+Abrir una terminal.
 
-1. Abre una terminal o consola.
-2. Navega hasta la carpeta del proyecto:
-
-```bash
+Entrar a la carpeta principal del proyecto usando:
 
 cd Proyecto
-Entra en la carpeta del backend:
 
-bash
-Copiar código
+
+Luego entrar a la carpeta del backend:
+
 cd backend
-Instala las dependencias:
 
-bash
-Copiar código
+
+Una vez dentro, instalar dependencias:
+
 npm install
-Inicia el servidor:
 
-bash
-Copiar código
-node server.js
-El servidor estará corriendo en: http://localhost:3000
 
-Abre tu navegador y prueba las pantallas:
+Finalmente iniciar el servidor:
 
-Login / Index: http://localhost:3000/index.html
+node app.js
 
-Registro de usuarios: http://localhost:3000/register
 
-Gestión de tareas (usuarios especiales): http://localhost:3000/tareas.html
+El servidor correrá en:
 
-Administración de usuarios normales: http://localhost:3000/administrador.html
-
-Funcionamiento de la API
-La API permite:
-
-Autenticación
-POST /login: Recibe username y password. Devuelve un token JWT para acceder a rutas protegidas.
-
-POST /register: Permite registrar nuevos usuarios normales y genera su token JWT.
-
-Rutas de tareas
-GET /api/tareas: Obtiene todas las tareas (requiere token).
-
-POST /api/tareas: Crea una nueva tarea (requiere token).
-
-PUT /api/tareas/:id: Actualiza una tarea específica (solo usuarios especiales).
-
-DELETE /api/tareas/:id: Elimina una tarea específica (solo usuarios especiales).
-
-Protección de rutas
-Las rutas CRUD requieren token JWT.
-
-Solo los usuarios especiales pueden modificar o eliminar tareas.
-
-Si un usuario no autorizado intenta acceder, la API devuelve 401 (No autorizado) o 403 (Prohibido).
-
-Notas finales
-Todas las tareas se almacenan en tareas.json.
-
-Los usuarios registrados se guardan en usuarios.json.
-
-La API funciona de forma asíncrona usando fs.promises para no bloquear el servidor.
-
-Se recomienda usar un navegador y Postman para probar todas las rutas y la autenticación.
-
+http://localhost:3000
